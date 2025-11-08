@@ -37,8 +37,8 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 load_dotenv()
 POLY_BASE = os.getenv("POLYMARKET_BASE", "https://clob.polymarket.com")
 MANIFOLD_BASE = os.getenv("MANIFOLD_BASE", "https://api.manifold.markets")
-SQLITE_PATH = os.getenv("SQLITE_PATH", "betgpt_markets.db")
-CSV_DUMP_DIR = Path(os.getenv("CSV_DUMP_DIR", "./dumps"))
+SQLITE_PATH = os.getenv("SQLITE_PATH", "../betgpt_markets.db")
+CSV_DUMP_DIR = Path(os.getenv("CSV_DUMP_DIR", "../dumps"))
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL_SECONDS", "60"))
 
 MANIFOLD_HEADERS = {}

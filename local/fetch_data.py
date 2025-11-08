@@ -1,11 +1,10 @@
 import requests
 import pandas as pd
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import json
 
 
 # Example: fetch market odds from TheOddsAPI
-API_KEY = " d6a7da0e0747fccb941b245d5702ccfd"
+API_KEY = "d6a7da0e0747fccb941b245d5702ccfd"
 SPORT = "soccer_epl"
 REGION = "uk"
 
@@ -13,9 +12,6 @@ url = f"https://api.the-odds-api.com/v4/sports/{SPORT}/odds"
 params = {"apiKey": API_KEY, "regions": REGION, "markets": "h2h"}
 response = requests.get(url, params=params)
 data = response.json()
-
-print("Type of data:", type(data))
-print(json.dumps(data, indent=2))  # safe for dicts too
 
 # Validate response
 if not isinstance(data, list):
@@ -68,5 +64,5 @@ df_odds['sentiment_score'] = df_odds['teams'].apply(
 )
 
 # Save CSV to load in Colab
-df_odds.to_csv("data/processed_events.csv", index=False)
+df_odds.to_csv("processed_events.csv", index=False)
 print("Processed data saved to processed_events.csv")
