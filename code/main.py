@@ -23,6 +23,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any
 from urllib.parse import quote_plus
+import copy
+
 
 import requests
 import pandas as pd
@@ -98,9 +100,28 @@ def init_db(conn: sqlite3.Connection):
 
 
 # --- Utility functions ---
+def to_int(val):
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return None
+
+def to_float(val):
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return None
+
 def now_ts():
     return int(datetime.now(tz=timezone.utc).timestamp())
 
+def to_int_ts(val):
+    if val is None:
+        return None
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return None
 
 def safe_get(d, *keys, default=None):
     x = d
@@ -108,7 +129,7 @@ def safe_get(d, *keys, default=None):
         for k in keys:
             x = x[k]
         return x
-    except Exception:
+    except (KeyError, TypeError, IndexError):
         return default
 
 
@@ -119,7 +140,7 @@ session.headers.update({"User-Agent": "BetGPT-Ingest/1.0 (+https://example.org)"
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10),
        retry=retry_if_exception_type(requests.exceptions.RequestException))
 def http_get(url: str, params: Dict[str, Any] = None, headers: Dict[str, str] = None, timeout=10):
-    h = session.headers.copy()
+    h = copy.deepcopy(session.headers)
     if headers:
         h.update(headers)
     r = session.get(url, params=params, headers=h, timeout=timeout)
@@ -220,8 +241,8 @@ def normalize_polymarket_market(raw: Dict[str,Any]) -> Dict[str,Any]:
         "source": "polymarket",
         "title": title,
         "question": title,
-        "created_at_ts": int(created) if created else None,
-        "closes_at_ts": int(close_ts) if close_ts else None,
+        "created_at_ts": to_int_ts(created),
+        "closes_at_ts": to_int_ts(close_ts),
         "outcomes": norm_outcomes,
         "volume": float(volume or 0),
         "raw": raw
@@ -319,88 +340,107 @@ def write_historical_rows(conn: sqlite3.Connection, market_id: str, source: str,
 # --- CSV dump helpers ---
 def dump_snapshot_csv(conn: sqlite3.Connection):
     df = pd.read_sql_query("SELECT * FROM market_snapshots ORDER BY snapshot_ts DESC LIMIT 10000", conn)
-    fname = CSV_DUMP_DIR / f"market_snapshots_{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.csv"
+    fname = CSV_DUMP_DIR / f"market_snapshots_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.csv"
     df.to_csv(fname, index=False)
     logger.info("Wrote snapshots CSV to %s", fname)
 
 
 def dump_markets_csv(conn: sqlite3.Connection):
     df = pd.read_sql_query("SELECT * FROM markets", conn)
-    fname = CSV_DUMP_DIR / f"markets_{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.csv"
+    fname = CSV_DUMP_DIR / f"markets_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.csv"
     df.to_csv(fname, index=False)
     logger.info("Wrote markets CSV to %s", fname)
 
 
-# --- Orchestrator: one fetch cycle ---
+# --- Orchestrator: one fetch cycle (safe, non-blocking) ---
 def run_fetch_cycle(conn: sqlite3.Connection):
     logger.info("Starting fetch cycle")
     try:
-        # Polymarket
+        # --- Polymarket ---
         try:
             pm = fetch_polymarket_markets(limit=200)
-            logger.info("Fetched %d polymarket markets", len(pm))
+            logger.info("Fetched %d Polymarket markets", len(pm))
         except Exception as e:
             logger.exception("Polymarket fetch failed: %s", e)
             pm = []
 
-        for raw in pm:
-            norm = normalize_polymarket_market(raw)
-            upsert_market(conn, norm)
-            write_snapshot(conn, norm)
-            # try historical candles (best-effort)
-            slug = safe_get(raw, "slug") or safe_get(raw, "id")
-            if slug:
-                candles = fetch_polymarket_market_candles(slug, resolution="1h")
-                if candles:
-                    # candles expected format: list of [ts, open, high, low, close, volume] or objects; be flexible
-                    hist_rows = []
-                    if isinstance(candles, list) and candles and isinstance(candles[0], (list, tuple)):
-                        for row in candles:
-                            # row[0] -> timestamp in ms? or unix. Try to infer
-                            ts = int(row[0]) // 1000 if row[0] > 1e10 else int(row[0])
-                            # close price is last element (close)
-                            price = float(row[4]) if len(row) > 4 else None
-                            hist_rows.append({"ts": ts, "outcome": None, "price": price, "raw": row})
-                    elif isinstance(candles, list):
-                        for obj in candles:
-                            ts = safe_get(obj, "t") or safe_get(obj, "time") or safe_get(obj, "timestamp") or None
-                            price = safe_get(obj, "c") or safe_get(obj, "close") or None
-                            if ts:
-                                hist_rows.append({"ts": int(ts), "outcome": None, "price": float(price) if price is not None else None, "raw": obj})
-                    write_historical_rows(conn, norm["id"], norm["source"], hist_rows)
-        # Manifold
+        for i, raw in enumerate(pm):
+            try:
+                norm = normalize_polymarket_market(raw)
+                upsert_market(conn, norm)
+                write_snapshot(conn, norm)
+            except (ValueError, TypeError, KeyError) as e:
+                logger.warning("Failed to process Polymarket market %s: %s", raw.get("id"), e)
+                continue  # skip this market
+
+            # --- Polymarket historical candles (best-effort, safe) ---
+            market_id = safe_get(raw, "id")
+            if not market_id:
+                continue
+            try:
+                candles = fetch_polymarket_market_candles(market_id, resolution="1h")
+                if not candles:
+                    continue
+                hist_rows = []
+                if isinstance(candles, list) and candles and isinstance(candles[0], (list, tuple)):
+                    for row in candles:
+                        ts = int(row[0]) // 1000 if row[0] > 1e10 else int(row[0])
+                        price = float(row[4]) if len(row) > 4 else None
+                        hist_rows.append({"ts": ts, "outcome": None, "price": price, "raw": row})
+                elif isinstance(candles, list):
+                    for obj in candles:
+                        ts = safe_get(obj, "t") or safe_get(obj, "time") or safe_get(obj, "timestamp") or None
+                        price = safe_get(obj, "c") or safe_get(obj, "close") or None
+                        if ts and price is not None:
+                            hist_rows.append({"ts": int(ts), "outcome": None, "price": float(price), "raw": obj})
+                write_historical_rows(conn, norm["id"], norm["source"], hist_rows)
+            except Exception as e:
+                logger.warning("Failed to fetch/process candles for Polymarket %s: %s", market_id, e)
+                continue  # continue to next market
+
+        # --- Manifold ---
         try:
             mm = fetch_manifold_markets(limit=200)
-            logger.info("Fetched %d manifold markets", len(mm))
+            logger.info("Fetched %d Manifold markets", len(mm))
         except Exception as e:
             logger.exception("Manifold fetch failed: %s", e)
             mm = []
 
-        for raw in mm:
-            norm = normalize_manifold_market(raw)
-            upsert_market(conn, norm)
-            write_snapshot(conn, norm)
-            # Manifold bet history -> use to build price series
+        for i, raw in enumerate(mm):
             try:
-                bets = fetch_manifold_bets(safe_get(raw, "id"))
+                norm = normalize_manifold_market(raw)
+                upsert_market(conn, norm)
+                write_snapshot(conn, norm)
+            except Exception as e:
+                logger.warning("Failed to process Manifold market %s: %s", raw.get("id"), e)
+                continue  # skip this market
+
+            # --- Manifold bet history ---
+            market_id = safe_get(raw, "id")
+            if not market_id:
+                continue
+            try:
+                bets = fetch_manifold_bets(market_id)
                 hist_rows = []
                 for b in bets:
-                    # Manifold bet entries typically include probBefore/probAfter and createdTime
                     ts = safe_get(b, "createdTime") or safe_get(b, "createdAt") or safe_get(b, "ts")
-                    # if we have probAfter and maybe 'probBefore'
                     price = safe_get(b, "probAfter") or safe_get(b, "probBefore")
                     if ts and price is not None:
                         hist_rows.append({"ts": int(ts), "outcome": None, "price": float(price), "raw": b})
                 write_historical_rows(conn, norm["id"], norm["source"], hist_rows)
             except Exception as e:
-                logger.debug("Manifold bets fetch failed for %s: %s", safe_get(raw, "id"), e)
+                logger.warning("Manifold bets fetch failed for %s: %s", market_id, e)
 
-        # Post-cycle dumps (CSV)
-        dump_snapshot_csv(conn)
-        dump_markets_csv(conn)
+        # --- Post-cycle CSV dumps ---
+        try:
+            dump_snapshot_csv(conn)
+            dump_markets_csv(conn)
+        except Exception as e:
+            logger.warning("Failed to dump CSVs: %s", e)
+
         logger.info("Fetch cycle finished")
     except Exception as e:
-        logger.exception("Error in fetch cycle: %s", e)
+        logger.exception("Unexpected error in fetch cycle: %s", e)
 
 
 # --- CLI / main ---
