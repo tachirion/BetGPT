@@ -1,9 +1,9 @@
-import os
-import time
 import requests
 import pandas as pd
+import time
+import os
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from dotenv import load_dotenv
-from openai import OpenAI
 
 # ----------------------
 # LOAD CONFIG
@@ -11,14 +11,7 @@ from openai import OpenAI
 load_dotenv()
 ODDS_API_KEY = os.getenv("ODDS_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Initialize OpenAI client
-client = OpenAI(api_key=OPENAI_API_KEY)
-
-# ----------------------
-# CONFIG
-# ----------------------
 SPORTS = [
     "americanfootball_nfl",
     "basketball_nba",
@@ -32,15 +25,13 @@ SPORTS = [
 REGION = "us"
 MARKETS = "h2h"
 PAGE_LIMIT = 5
-WAIT_BETWEEN = 1
-MAX_NEWS = 5  # number of headlines per event
-
-OUTPUT_FILE = ("..\data\processed_events.csv")  # relative to local\
+WAIT_BETWEEN = 1  # seconds to avoid rate limits
+MAX_NEWS = 5      # headlines per event
 
 # ----------------------
-# HELPER FUNCTIONS
+# HELPER: Fetch News Headlines
 # ----------------------
-def get_news_headlines(query, max_results=5):
+def get_headlines(query, max_results=5):
     url = "https://newsapi.org/v2/everything"
     params = {
         "q": query,
@@ -48,58 +39,19 @@ def get_news_headlines(query, max_results=5):
         "sortBy": "publishedAt",
         "apiKey": NEWS_API_KEY
     }
+    response = requests.get(url, params=params)
     try:
-        response = requests.get(url, params=params)
         data = response.json()
-        articles = data.get("articles", [])
-        return [a['title'] for a in articles]
     except:
         return []
-
-def llm_sentiment(headlines):
-    if not headlines:
-        return 0.0
-    prompt = f"""
-    You are a sentiment analysis engine.
-    Rate the overall sentiment of the following headlines from -1 (very negative) to 1 (very positive). 
-    Provide only a single float number:
-    {headlines}
-    """
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        score_text = response.choices[0].message.content.strip()
-        score = float(score_text)
-        return score
-    except:
-        return 0.0
-
-def llm_model_prob(event_name, headlines):
-    if not headlines:
-        return 0.5
-    prompt = f"""
-    Given the event '{event_name}' and the following headlines:
-    {headlines}
-    Estimate the probability (0-1) that the first listed team/person wins.
-    Only return a float between 0 and 1.
-    """
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        prob = float(response.choices[0].message.content.strip())
-        return prob
-    except:
-        return 0.5
+    if "articles" not in data:
+        return []
+    return [article['title'] for article in data['articles']]
 
 # ----------------------
 # FETCH EVENTS
 # ----------------------
 all_events = []
-
 for sport in SPORTS:
     print(f"Fetching {sport}...")
     for page in range(1, PAGE_LIMIT + 1):
@@ -128,7 +80,6 @@ print(f"Total events fetched: {len(all_events)}")
 # PARSE EVENTS
 # ----------------------
 events_parsed = []
-
 for event in all_events:
     if not isinstance(event, dict):
         continue
@@ -163,37 +114,30 @@ df['team1_prob_norm'] = df['team1_prob'] / total
 df['team2_prob_norm'] = df['team2_prob'] / total
 
 # ----------------------
-# NEWS & LLM SENTIMENT / MODEL PROB
+# NEWS & SENTIMENT
 # ----------------------
+analyzer = SentimentIntensityAnalyzer()
+
+def compute_sentiment(headlines):
+    scores = [analyzer.polarity_scores(h)['compound'] for h in headlines]
+    return sum(scores)/len(scores) if scores else 0
+
 news_list = []
 sentiments = []
-model_probs = []
 
 for teams in df['teams']:
-    headlines = get_news_headlines(teams, max_results=MAX_NEWS)
+    headlines = get_headlines(teams, max_results=MAX_NEWS)
     news_list.append(headlines)
-    sentiment = llm_sentiment(headlines)
-    sentiments.append(sentiment)
-    model_prob = llm_model_prob(teams, headlines)
-    model_probs.append(model_prob)
-    print(f"{teams} -> {len(headlines)} headlines, sentiment {sentiment:.2f}, model_prob {model_prob:.2f}")
+    sentiments.append(compute_sentiment(headlines))
+    print(f"{teams} -> {len(headlines)} headlines, sentiment {sentiments[-1]:.2f}")
 
 df['news_headlines'] = news_list
 df['sentiment_score'] = sentiments
 df['sentiment_score_norm'] = (df['sentiment_score'] + 1) / 2  # normalize 0-1
-df['model_prob'] = model_probs
 
 # ----------------------
-# COMPUTE INEFFICIENCY SCORE
+# SAVE DATASET
 # ----------------------
-# Here we take abs discrepancy + sentiment as alpha signal
-df['market_prob'] = df['team1_prob_norm']  # for first outcome
-df['discrepancy'] = abs(df['model_prob'] - df['market_prob'])
-df['inefficiency_score'] = df['discrepancy'] + df['sentiment_score_norm']
-
-# ----------------------
-# SAVE CSV
-# ----------------------
-os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
-df.to_csv(OUTPUT_FILE, index=False)
-print(f"Saved processed events to {OUTPUT_FILE}")
+# TODO: change path to data\, add makeosdir if needed
+df.to_csv("expanded_multi_sports_events.csv", index=False)
+print("Saved expanded dataset to expanded_multi_sports_events.csv")
