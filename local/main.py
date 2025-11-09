@@ -336,7 +336,7 @@ def write_historical_rows(conn: sqlite3.Connection, market_id: str, source: str,
         """, (market_id, source, r.get("ts"), r.get("outcome"), r.get("price"), json.dumps(r.get("raw", {}))))
     conn.commit()
 
-# TODO: fix paths
+
 # --- CSV dump helpers ---
 def dump_snapshot_csv(conn: sqlite3.Connection):
     df = pd.read_sql_query("SELECT * FROM market_snapshots ORDER BY snapshot_ts DESC LIMIT 10000", conn)
