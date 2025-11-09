@@ -3,7 +3,7 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 
 
-df = pd.read_csv("..\data\processed_events.csv")
+df = pd.read_csv("../../data/processed_events.csv")
 
 # TODO: fake??
 # Fake features for demonstration: sentiment only

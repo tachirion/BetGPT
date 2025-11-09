@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-main.py
+ingest_market.py
 
 Single-file ingestion for Polymarket and Manifold:
 - fetch live market info (title/question, outcomes, current prices / implied probabilities)
@@ -9,8 +9,8 @@ Single-file ingestion for Polymarket and Manifold:
 - normalize and store to SQLite and CSV
 
 Run:
-  python main.py --once       # run one fetch cycle
-  python main.py --daemon     # run continuously using APScheduler
+  python ingest_market.py --once       # run one fetch cycle
+  python ingest_market.py --daemon     # run continuously using APScheduler
 """
 
 import os

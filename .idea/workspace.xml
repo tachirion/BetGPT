@@ -5,12 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="103d4a1d-236b-4dfa-b0d7-4689f8743dee" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/local/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/local/inefficiency_engine.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/local/prediction_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/local/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/local/utils/signals.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/streamlit/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/processed_events.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/processed_events.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/compare.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/compare.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/fetch_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/fetch_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local/compare.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/deprecated/compare.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local/fetch_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/future/fetch_data_nlp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/local/fetch_data_vader.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/fetch_data_vader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/ingest_market.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local/model_training.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/deprecated/model_training.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/streamlit/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/streamlit/app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,15 +46,24 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.app.executor": "Run",
     "Python.compare.executor": "Run",
     "Python.fetch_data.executor": "Run",
     "Python.fetch_data_vader.executor": "Run",
+    "Python.inefficiency_engine.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\TatevStepanyan\Desktop\betgpt\local\deprecated" />
+      <recent name="C:\Users\TatevStepanyan\Desktop\betgpt\local\future" />
+      <recent name="C:\Users\TatevStepanyan\Desktop\betgpt\data" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -61,7 +78,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1762673146262</updated>
-      <workItem from="1762683546451" duration="2633000" />
+      <workItem from="1762683546451" duration="5992000" />
     </task>
     <servers />
   </component>
@@ -70,7 +87,9 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/betgpt$fetch_data_vader.coverage" NAME="fetch_data_vader Coverage Results" MODIFIED="1762685753057" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/local" />
+    <SUITE FILE_PATH="coverage/betgpt$inefficiency_engine.coverage" NAME="inefficiency_engine Coverage Results" MODIFIED="1762687372503" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/local" />
     <SUITE FILE_PATH="coverage/betgpt$fetch_data.coverage" NAME="fetch_data Coverage Results" MODIFIED="1762683719783" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/local" />
+    <SUITE FILE_PATH="coverage/betgpt$app.coverage" NAME="app Coverage Results" MODIFIED="1762689333903" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/streamlit" />
     <SUITE FILE_PATH="coverage/betgpt$compare.coverage" NAME="compare Coverage Results" MODIFIED="1762683576803" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/local" />
   </component>
 </project>

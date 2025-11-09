@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import requests
 import pandas as pd
 import time
@@ -140,6 +141,20 @@ def compute_sentiment(headlines):
     print(f"[DEBUG] Scores: {scores}")
     avg_score = sum(scores) / len(scores)
     return avg_score
+
+def extract_event_keywords(title: str):
+    """
+    Light-weight extraction to form a Google News query from a market title.
+    For sports: tries to split on ' vs ' or ' v ' or ' vs. '
+    Otherwise returns the title as-is.
+    """
+    if not title:
+        return ""
+    lowered = title.lower()
+    if " vs " in lowered or " v " in lowered:
+        return title
+    # fallback: return full title
+    return title
 
 news_list = []
 sentiments = []

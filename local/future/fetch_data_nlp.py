@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fetch_data.py – optimized for Google Cloud NLP & embeddings
+fetch_data_nlp.py – optimized for Google Cloud NLP & embeddings
 - Multi-sport, multi-page
 - Robust HTTP retry/backoff
 - CSV + optional SQLite output
@@ -29,7 +29,7 @@ from google.cloud import aiplatform
 load_dotenv()
 ODDS_API_KEY = os.getenv("ODDS_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", os.path.join("..", "data", "processed_events.csv"))
+OUTPUT_FILE = os.getenv("OUTPUT_FILE", os.path.join("../..", "data", "processed_events.csv"))
 SQLITE_FILE = os.getenv("SQLITE_FILE", None)  # e.g. "../data/events.db"
 
 SPORTS = [
