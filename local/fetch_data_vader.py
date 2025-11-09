@@ -2,15 +2,20 @@ import requests
 import pandas as pd
 import time
 import os
+import feedparser
+import urllib.parse
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from dotenv import load_dotenv
 
+
 # ----------------------
-# LOAD CONFIG
+# CONFIG
 # ----------------------
 load_dotenv()
 ODDS_API_KEY = os.getenv("ODDS_API_KEY")
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+
+if not ODDS_API_KEY:
+    raise ValueError("ODDS_API_KEY not found in environment variables!")
 
 SPORTS = [
     "americanfootball_nfl",
@@ -24,57 +29,63 @@ SPORTS = [
 
 REGION = "us"
 MARKETS = "h2h"
-PAGE_LIMIT = 5
+PAGE_LIMIT = 2
 WAIT_BETWEEN = 1  # seconds to avoid rate limits
 MAX_NEWS = 5      # headlines per event
 
 # ----------------------
-# HELPER: Fetch News Headlines
+# HELPER: Google News RSS Headlines
 # ----------------------
-def get_headlines(query, max_results=5):
-    url = "https://newsapi.org/v2/everything"
-    params = {
-        "q": query,
-        "pageSize": max_results,
-        "sortBy": "publishedAt",
-        "apiKey": NEWS_API_KEY
-    }
-    response = requests.get(url, params=params)
+news_cache = {}
+
+def get_google_news_headlines(query, max_results=5):
+    """Fetch top headlines from Google News RSS for a query."""
+    if query in news_cache:
+        return news_cache[query]
+
+    query_encoded = urllib.parse.quote(query)
+    url = f"https://news.google.com/rss/search?q={query_encoded}&hl=en-US&gl=US&ceid=US:en"
+
     try:
-        data = response.json()
-    except:
+        feed = feedparser.parse(url)
+        articles = feed.get('entries', [])[:max_results]
+        headlines = [entry['title'] for entry in articles if 'title' in entry]
+        if not headlines:
+            print(f"[INFO] No headlines found for '{query}'")
+        news_cache[query] = headlines
+        return headlines
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch Google News for '{query}': {e}")
         return []
-    if "articles" not in data:
-        return []
-    return [article['title'] for article in data['articles']]
 
 # ----------------------
-# FETCH EVENTS
+# FETCH ODDS EVENTS
 # ----------------------
 all_events = []
 for sport in SPORTS:
-    print(f"Fetching {sport}...")
+    print(f"\n[FETCHING] Sport: {sport}")
     for page in range(1, PAGE_LIMIT + 1):
         url = f"https://api.the-odds-api.com/v4/sports/{sport}/odds"
         params = {"apiKey": ODDS_API_KEY, "regions": REGION, "markets": MARKETS, "page": page}
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=10)
             data = response.json()
         except Exception as e:
-            print(f"Failed page {page} of {sport}: {e}")
+            print(f"[ODDSAPI ERROR] Failed page {page} of {sport}: {e}")
             break
 
         if isinstance(data, dict) and "message" in data:
-            print(f"API error {sport} page {page}: {data['message']}")
+            print(f"[ODDSAPI ERROR] {sport} page {page}: {data['message']}")
             break
         if not data:
+            print(f"[ODDSAPI INFO] No data on page {page} for {sport}")
             break
 
         all_events.extend(data)
-        print(f"Page {page} fetched: {len(data)} events")
+        print(f"[ODDSAPI INFO] Page {page} fetched: {len(data)} events")
         time.sleep(WAIT_BETWEEN)
 
-print(f"Total events fetched: {len(all_events)}")
+print(f"\n[TOTAL EVENTS] Fetched: {len(all_events)}")
 
 # ----------------------
 # PARSE EVENTS
@@ -102,7 +113,10 @@ for event in all_events:
         })
 
 df = pd.DataFrame(events_parsed)
-print(f"Parsed events: {len(df)}")
+print(f"[PARSED EVENTS] {len(df)} events")
+
+if df.empty:
+    raise ValueError("No events parsed. Check your ODDS_API_KEY or SPORT list.")
 
 # ----------------------
 # MARKET PROBABILITIES
@@ -119,17 +133,23 @@ df['team2_prob_norm'] = df['team2_prob'] / total
 analyzer = SentimentIntensityAnalyzer()
 
 def compute_sentiment(headlines):
+    if not headlines:
+        return 0
     scores = [analyzer.polarity_scores(h)['compound'] for h in headlines]
-    return sum(scores)/len(scores) if scores else 0
+    print(f"[DEBUG] Headlines: {headlines}")
+    print(f"[DEBUG] Scores: {scores}")
+    avg_score = sum(scores) / len(scores)
+    return avg_score
 
 news_list = []
 sentiments = []
 
 for teams in df['teams']:
-    headlines = get_headlines(teams, max_results=MAX_NEWS)
+    headlines = get_google_news_headlines(teams, max_results=MAX_NEWS)
+    sentiment_score = compute_sentiment(headlines)
     news_list.append(headlines)
-    sentiments.append(compute_sentiment(headlines))
-    print(f"{teams} -> {len(headlines)} headlines, sentiment {sentiments[-1]:.2f}")
+    sentiments.append(sentiment_score)
+    print(f"[SENTIMENT] {teams} -> {len(headlines)} headlines, sentiment {sentiment_score:.2f}")
 
 df['news_headlines'] = news_list
 df['sentiment_score'] = sentiments
@@ -138,6 +158,8 @@ df['sentiment_score_norm'] = (df['sentiment_score'] + 1) / 2  # normalize 0-1
 # ----------------------
 # SAVE DATASET
 # ----------------------
-# TODO: change path to data\, add makeosdir if needed
-df.to_csv("expanded_multi_sports_events.csv", index=False)
-print("Saved expanded dataset to expanded_multi_sports_events.csv")
+output_dir = os.path.join("..", "data")
+os.makedirs(output_dir, exist_ok=True)
+output_path = os.path.join(output_dir, "expanded_multi_sports_events.csv")
+df.to_csv(output_path, index=False)
+print(f"\n[SAVED] Dataset saved to {output_path}")

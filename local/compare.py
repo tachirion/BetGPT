@@ -222,9 +222,80 @@
 #     main()
 
 
-from google.cloud import language_v1
+# from google.cloud import language_v1
+#
+# client = language_v1.LanguageServiceClient()
+# doc = language_v1.Document(content="Hello world!", type_=language_v1.Document.Type.PLAIN_TEXT)
+# sentiment = client.analyze_sentiment(request={"document": doc}).document_sentiment
+# print(sentiment.score)
 
-client = language_v1.LanguageServiceClient()
-doc = language_v1.Document(content="Hello world!", type_=language_v1.Document.Type.PLAIN_TEXT)
-sentiment = client.analyze_sentiment(request={"document": doc}).document_sentiment
-print(sentiment.score)
+
+# from google.cloud import aiplatform
+# import os
+#
+# # Initialize Vertex AI
+# PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+# REGION_AI = os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
+# aiplatform.init(project=PROJECT_ID, location=REGION_AI)
+#
+# # Create embedding model object
+# embedding_model = aiplatform.TextEmbeddingModel(
+#     model_name="textembedding-gecko@001"  # or another available embedding model
+# )
+
+
+# from vertexai.language_models import TextEmbeddingModel
+# import vertexai
+# import os
+#
+# from dotenv import load_dotenv
+# load_dotenv()
+#
+#
+# PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+# REGION = os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
+#
+# vertexai.init(project=PROJECT_ID, location=REGION)
+#
+# # create embedding model
+# embedding_model = TextEmbeddingModel.from_pretrained("textembedding-gecko@001")
+#
+# def embeddings_google(text: str) -> list:
+#     if not text:
+#         return []
+#     try:
+#         emb = embedding_model.get_embeddings([text])
+#         return emb.values
+#     except Exception as e:
+#         print("embeddings_google error:", e)
+#         return []
+#
+#
+# text = "Hello world"
+# vector = embeddings_google(text)
+# print(len(vector), vector[:5])
+
+from vertexai.language_models import TextEmbeddingModel
+import vertexai
+import os
+
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
+REGION = os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
+
+vertexai.init(project=PROJECT_ID, location=REGION)
+
+# Pick a model your project has access to (lite version is safest)
+embedding_model = TextEmbeddingModel.from_pretrained("textembedding-gecko-lite@001")
+
+def embeddings_google(text: str) -> list:
+    if not text:
+        return []
+    try:
+        emb = embedding_model.get_embeddings([text])
+        return emb[0].values
+    except Exception as e:
+        print("embeddings_google error:", e)
+        return []
+
+vector = embeddings_google("Hello world")
+print(len(vector), vector[:5])

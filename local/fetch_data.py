@@ -21,6 +21,7 @@ from typing import List, Dict, Any, Optional
 # Google Cloud
 from google.cloud import language_v1
 from google.cloud import aiplatform
+from google.cloud import aiplatform
 
 # ----------------------
 # LOAD CONFIG
@@ -127,9 +128,9 @@ def sentiment_google(texts: List[str]) -> float:
 def embeddings_google(text: str) -> List[float]:
     """Return embedding vector for text using Vertex AI embeddings."""
     try:
-        embedding_model = "textembedding-gecko@001"  # Google’s embeddings model
-        response = aiplatform.EmbeddingModel(model_name=embedding_model).get_embeddings([text])
-        return response[0].values
+        model = aiplatform.models.TextEmbeddingModel("textembedding-gecko@001")
+        response = model.get_embeddings([text])
+        return response.embeddings[0].values
     except Exception as e:
         print("embeddings_google error:", e)
         return []
