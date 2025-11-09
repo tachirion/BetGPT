@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="103d4a1d-236b-4dfa-b0d7-4689f8743dee" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/betgpt.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/betgpt.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/inefficiency_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/inefficiency_engine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/streamlit/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/streamlit/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
