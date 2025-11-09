@@ -104,7 +104,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from pathlib import Path
-from prediction_model import estimate_real_probability  # NEW
+from local.prediction_model import estimate_real_probability
+
 
 DATA_PATH = Path("../data/expanded_multi_sports_events.csv")
 OUTPUT_DIR = Path("../data")

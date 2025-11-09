@@ -5,19 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="103d4a1d-236b-4dfa-b0d7-4689f8743dee" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/local/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/local/inefficiency_engine.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/local/prediction_model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/local/utils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/local/utils/signals.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/streamlit/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/betgpt.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/betgpt.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/compare.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/deprecated/compare.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/fetch_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/future/fetch_data_nlp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/fetch_data_vader.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/fetch_data_vader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/ingest_market.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local/model_training.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/deprecated/model_training.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local/inefficiency_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/local/inefficiency_engine.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/streamlit/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/streamlit/app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,20 +35,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.app.executor": "Run",
-    "Python.compare.executor": "Run",
-    "Python.fetch_data.executor": "Run",
-    "Python.fetch_data_vader.executor": "Run",
-    "Python.inefficiency_engine.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.compare.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fetch_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.fetch_data_vader.executor&quot;: &quot;Run&quot;,
+    &quot;Python.inefficiency_engine.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\TatevStepanyan\Desktop\betgpt\local\deprecated" />
